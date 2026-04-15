@@ -157,6 +157,8 @@ export default function AlbumPanel({ eventId, approvedCount }: Props) {
   const [contentTextFields, setContentTextFields] = useState<TextField[]>([]);
   const [coverTextParams, setCoverTextParams] = useState<Record<string, string>>({});
   const [contentTextParams, setContentTextParams] = useState<Record<string, string>>({});
+  const [coverSupportsImages, setCoverSupportsImages] = useState(true);
+  const [contentSupportsImages, setContentSupportsImages] = useState(true);
 
   // Estimate
   const [quantity, setQuantity] = useState(1);
@@ -190,10 +192,12 @@ export default function AlbumPanel({ eventId, approvedCount }: Props) {
     setSelectedCoverTemplate(uid);
     setCoverTextFields([]);
     setCoverTextParams({});
+    setCoverSupportsImages(true);
     try {
-      const fields = await getTemplateParamFields(uid);
-      setCoverTextFields(fields);
-      setCoverTextParams(Object.fromEntries(fields.map((f) => [f.key, ''])));
+      const result = await getTemplateParamFields(uid);
+      setCoverTextFields(result.fields);
+      setCoverTextParams(Object.fromEntries(result.fields.map((f) => [f.key, ''])));
+      setCoverSupportsImages(result.supportsImages);
     } catch { /* 파라미터 없으면 무시 */ }
   }
 
@@ -202,10 +206,12 @@ export default function AlbumPanel({ eventId, approvedCount }: Props) {
     setSelectedContentTemplate(uid);
     setContentTextFields([]);
     setContentTextParams({});
+    setContentSupportsImages(true);
     try {
-      const fields = await getTemplateParamFields(uid);
-      setContentTextFields(fields);
-      setContentTextParams(Object.fromEntries(fields.map((f) => [f.key, ''])));
+      const result = await getTemplateParamFields(uid);
+      setContentTextFields(result.fields);
+      setContentTextParams(Object.fromEntries(result.fields.map((f) => [f.key, ''])));
+      setContentSupportsImages(result.supportsImages);
     } catch { /* 파라미터 없으면 무시 */ }
   }
 
@@ -233,6 +239,14 @@ export default function AlbumPanel({ eventId, approvedCount }: Props) {
   async function handleBuild() {
     if (!selectedCoverTemplate || !selectedContentTemplate) {
       setError('책 규격과 표지/본문 템플릿을 모두 선택해주세요.');
+      return;
+    }
+    if (!coverSupportsImages) {
+      setError('선택한 표지 템플릿은 사진 슬롯이 없습니다. 다른 표지 템플릿을 선택해주세요.');
+      return;
+    }
+    if (!contentSupportsImages) {
+      setError('선택한 본문 템플릿은 사진 슬롯이 없습니다. 빈내지가 아닌 사진용 본문 템플릿을 선택해주세요.');
       return;
     }
     const missingCover = coverTextFields.filter((f) => f.required && !coverTextParams[f.key]?.trim());
@@ -450,6 +464,12 @@ export default function AlbumPanel({ eventId, approvedCount }: Props) {
           </div>
         )}
 
+        {selectedCoverTemplate && !coverSupportsImages && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            이 표지 템플릿은 사진을 받지 않는 템플릿입니다. 자동 포토북용 표지 템플릿을 선택해주세요.
+          </p>
+        )}
+
         {/* 본문 텍스트 파라미터 */}
         {selectedContentTemplate && contentTextFields.length > 0 && (
           <div className="space-y-2 border-t border-gray-100 pt-4">
@@ -471,13 +491,19 @@ export default function AlbumPanel({ eventId, approvedCount }: Props) {
           </div>
         )}
 
+        {selectedContentTemplate && !contentSupportsImages && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            이 본문 템플릿은 사진 슬롯이 없는 빈내지입니다. 사진이 들어가는 본문 템플릿을 선택해주세요.
+          </p>
+        )}
+
         {error && (
           <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
         )}
 
         <button
           onClick={handleBuild}
-          disabled={!selectedCoverTemplate || !selectedContentTemplate}
+          disabled={!selectedCoverTemplate || !selectedContentTemplate || !coverSupportsImages || !contentSupportsImages}
           className="w-full bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
         >
           앨범 만들기 →

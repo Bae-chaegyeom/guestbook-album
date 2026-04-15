@@ -60,8 +60,9 @@ npm run db:generate    # Prisma 클라이언트 재생성
 ```
 
 ### 4. 더미 데이터 시드 (선택 — 데모 이벤트 즉시 확인)
-
-> 인터넷 연결이 필요합니다 (picsum.photos에서 샘플 이미지를 다운로드합니다).
+레포에 포함된 샘플 이미지(`apps/server/prisma/seed-assets/seed-001.png` ~ `seed-025.png`)를 사용해
+데모 이벤트와 업로드 25개를 생성합니다. 시드 실행 시 이미지가 `uploads/`로 복사되며,
+추가 다운로드는 필요하지 않습니다.
 
 ```bash
 cd apps/server

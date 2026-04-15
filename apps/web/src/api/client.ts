@@ -106,10 +106,19 @@ export async function getBookSpecs(): Promise<unknown[]> {
 
 export async function getTemplateParamFields(
   templateUid: string
-): Promise<Array<{ key: string; label: string; required: boolean }>> {
+): Promise<{
+  fields: Array<{ key: string; label: string; required: boolean }>;
+  supportsImages: boolean;
+  imageFieldCount: number;
+  usesGallery: boolean;
+}> {
   const res = await fetch(`${BASE}/album/template-params/${encodeURIComponent(templateUid)}`);
-  const json = await handleResponse<{ fields: Array<{ key: string; label: string; required: boolean }> }>(res);
-  return json.fields;
+  return handleResponse<{
+    fields: Array<{ key: string; label: string; required: boolean }>;
+    supportsImages: boolean;
+    imageFieldCount: number;
+    usesGallery: boolean;
+  }>(res);
 }
 
 export async function getTemplates(bookSpecUid?: string, kind?: 'cover' | 'content'): Promise<unknown[]> {

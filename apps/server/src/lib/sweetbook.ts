@@ -189,6 +189,22 @@ export async function getTemplateParams(templateUid: string): Promise<TemplateTe
   return schema.textFields;
 }
 
+export async function getTemplateCapabilities(templateUid: string): Promise<{
+  textFields: TemplateTextField[];
+  supportsImages: boolean;
+  imageFieldCount: number;
+  usesGallery: boolean;
+}> {
+  const schema = await getTemplateSchema(templateUid);
+  const imageFieldCount = schema.fileFields.length + (schema.galleryField ? 1 : 0);
+  return {
+    textFields: schema.textFields,
+    supportsImages: imageFieldCount > 0,
+    imageFieldCount,
+    usesGallery: Boolean(schema.galleryField),
+  };
+}
+
 /** 사용 가능한 책 규격 목록 */
 export async function listBookSpecs(): Promise<unknown[]> {
   console.log('[Sweetbook] GET /book-specs');
@@ -228,7 +244,7 @@ export interface BuildParams {
 /** 1단계: 책 프로젝트 생성 */
 export async function createBook(title: string, bookSpecUid: string): Promise<string> {
   const client = getClient();
-  const creationType = process.env.SWEETBOOK_ENV === 'live' ? 'NORMAL' : 'TEST';
+  const creationType = 'EBOOK_SYNC';
 
   console.log(`[Sweetbook] books.create — spec=${bookSpecUid}, type=${creationType}`);
   const res = await client.books.create({ bookSpecUid, title, creationType });

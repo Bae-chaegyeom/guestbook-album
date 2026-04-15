@@ -28,8 +28,13 @@ albumRouter.get('/book-specs', async (_req: Request, res: Response, next: NextFu
 
 albumRouter.get('/template-params/:templateUid', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const fields = await sweetbook.getTemplateParams(req.params.templateUid);
-    res.json({ fields });
+    const capabilities = await sweetbook.getTemplateCapabilities(req.params.templateUid);
+    res.json({
+      fields: capabilities.textFields,
+      supportsImages: capabilities.supportsImages,
+      imageFieldCount: capabilities.imageFieldCount,
+      usesGallery: capabilities.usesGallery,
+    });
   } catch (err) {
     next(err);
   }
@@ -83,6 +88,25 @@ albumRouter.post('/:eventId/build', async (req: Request, res: Response, next: Ne
       return;
     }
     const { bookSpecUid, coverTemplateUid, contentTemplateUid, coverTextParams, contentTextParams } = parseResult.data;
+
+    const [coverCapabilities, contentCapabilities] = await Promise.all([
+      sweetbook.getTemplateCapabilities(coverTemplateUid),
+      sweetbook.getTemplateCapabilities(contentTemplateUid),
+    ]);
+
+    if (!coverCapabilities.supportsImages) {
+      res.status(400).json({
+        error: '선택한 표지 템플릿은 사진 슬롯이 없습니다. 표지 이미지를 받는 템플릿을 선택해주세요.',
+      });
+      return;
+    }
+
+    if (!contentCapabilities.supportsImages) {
+      res.status(400).json({
+        error: '선택한 본문 템플릿은 사진 슬롯이 없습니다. 빈내지 대신 사진이 들어가는 본문 템플릿을 선택해주세요.',
+      });
+      return;
+    }
 
     // 1. 이벤트 확인
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -286,4 +310,3 @@ albumRouter.get('/:eventId/order-status', async (req: Request, res: Response, ne
     next(err);
   }
 });
-
