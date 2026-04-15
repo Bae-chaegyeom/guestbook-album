@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  weddingDate DateTime
+  brideName   String
+  groomName   String
+  tagline     String?
+  hostPin     String
+  publicToken String      @unique @default(cuid())
+  status      EventStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  uploads   GuestUpload[]
+  albumJobs AlbumJob[]
+}
+
+enum EventStatus {
+  ACTIVE
+  CLOSED
+}
+
+model GuestUpload {
+  id               String   @id @default(cuid())
+  eventId          String
+  event            Event    @relation(fields: [eventId], references: [id])
+  imageUrl         String
+  message          String?
+  uploaderName     String?
+  approved         Boolean  @default(false)
+  isCoverCandidate Boolean  @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model AlbumJob {
+  id               String         @id @default(cuid())
+  eventId          String
+  event            Event          @relation(fields: [eventId], references: [id])
+  sweetbookBookId  String?
+  sweetbookOrderId String?
+  status           AlbumJobStatus @default(PENDING)
+  errorMessage     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+enum AlbumJobStatus {
+  PENDING
+  BOOK_CREATED
+  PHOTOS_UPLOADED
+  COVER_ADDED
+  CONTENTS_ADDED
+  FINALIZED
+  ORDER_PLACED
+  FAILED
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.env.local
+uploads/
+.DS_Store
+.agents
+.claude
+PRD.md
+AGENTS.md
+CLAUDE.md

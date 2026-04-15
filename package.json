@@ -1,0 +1,13 @@
+{
+  "name": "guestbook-album",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:server": "npm run dev --workspace=apps/server",
+    "build": "npm run build --workspace=apps/web && npm run build --workspace=apps/server"
+  }
+}
